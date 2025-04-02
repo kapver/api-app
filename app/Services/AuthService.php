@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthService
 {
+    private static ?string $token_key = null;
+
+    public function __construct(private PhotoService $photoService)
+    {
+    }
+
     public function getRegistrationToken(string $client_ip, string $client_agent): string
     {
         $client_hash = hash('sha256', $client_ip.$client_agent);
@@ -21,7 +27,8 @@ class AuthService
                 'client_ip' => $client_ip,
                 'client_agent' => $client_agent,
             ]);
-            Cache::put($token_key, $token, now()->addMinutes(40));
+            $lifetime = (int) config('app.registration_token_lifetime', 40);
+            Cache::put($token_key, $token, now()->addMinutes($lifetime));
         } else {
             $token = Cache::get($token_key);
         }
@@ -32,8 +39,8 @@ class AuthService
     public function checkRegistrationToken(string $client_token, string $client_ip, string $client_agent): bool
     {
         $client_hash = hash('sha256', $client_ip.$client_agent);
-        $token_key = 'token_' . $client_hash;
-        $stored_token = Cache::get($token_key);
+        self::$token_key = 'token_' . $client_hash;
+        $stored_token = Cache::get(self::$token_key);
 
         if ($client_token && $stored_token === $client_token) {
             try {
@@ -45,6 +52,13 @@ class AuthService
         }
 
         return false;
+    }
+
+    public static function removeRegistrationToken(): void
+    {
+        if (self::$token_key) {
+            Cache::delete(self::$token_key);
+        }
     }
 
     public function register(array $data): User
@@ -62,6 +76,15 @@ class AuthService
         $user->password = Hash::make('password');
         $user->save();
 
+        self::removeRegistrationToken();
+
+        if ($data['photo']) {
+            $user->photo = $this->photoService->upload($data['photo']);
+            $user->save();
+        }
+
         return $user;
     }
+
+
 }

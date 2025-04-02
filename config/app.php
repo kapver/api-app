@@ -123,4 +123,13 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    | Registration token lifetime in minutes
+    */
+    'registration_token_lifetime' => env('REGISTRATION_TOKEN_LIFETIME', 40),
+
+    'tinify_api_key' => env('TINIFY_API_KEY'),
+    'tinify_crop_width' => env('TINIFY_CROP_WIDTH', 70),
+    'tinify_crop_height' => env('TINIFY_CROP_HEIGHT', 70),
+
 ];

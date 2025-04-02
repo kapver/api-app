@@ -20,12 +20,15 @@ class RegisterUserRequest extends FormRequest
 
     public function rules(): array
     {
+        $width = (int) config('app.tinify_crop_width');
+        $height = (int) config('app.tinify_crop_height');
+
         return [
             'name' => 'required|string|min:2|max:60',
             'email' => 'required|email:rfc', // |unique:users,email
             'phone' => 'required|string|regex:/^\+380[0-9]{9}$/', // |unique:users,phone - need canonical
             'position_id' => 'required|integer|exists:positions,id',
-            'photo' => 'required|image|mimes:jpg,jpeg|dimensions:min_width=70,min_height=70|max:5120' // JPG/JPEG, min 70x70, max 5MB
+            'photo' => 'required|image|mimes:jpg,jpeg|dimensions:min_width='.$width.',min_height='.$height.'|max:5120' // JPG/JPEG, min 70x70, max 5MB
         ];
     }
 

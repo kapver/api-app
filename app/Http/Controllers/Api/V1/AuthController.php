@@ -29,17 +29,11 @@ class AuthController extends Controller
     public function register(
         RegisterUserRequest $request,
         AuthService $authService,
-        PhotoService $photoService,
     ): JsonResponse
     {
         try {
             $data = $request->validated();
             $user = $authService->register($data);
-
-            if ($data['photo']) {
-                $photo_path = $photoService->upload($data['photo']);
-                $user->updatePhoto($photo_path);
-            }
 
             return response()->json([
                 'success' => true,
