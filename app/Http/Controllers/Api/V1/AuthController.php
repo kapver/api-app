@@ -34,15 +34,12 @@ class AuthController extends Controller
     {
         try {
             $data = $request->validated();
-
             $user = $authService->register($data);
 
-            // $photo = $data['photo'];
-            // unset($data['photo']);
-            // if ($photo) {
-            //     $photo_path = $photoService->upload($photo);
-            //     $user->updatePhotoPath($photo_path);
-            // }
+            if ($data['photo']) {
+                $photo_path = $photoService->upload($data['photo']);
+                $user->updatePhoto($photo_path);
+            }
 
             return response()->json([
                 'success' => true,

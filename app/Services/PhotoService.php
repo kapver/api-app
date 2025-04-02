@@ -2,16 +2,29 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class PhotoService
 {
-    public function upload($photo): string
+    public function upload(UploadedFile $photo): string
     {
-        $fileName = time() . bin2hex(random_bytes(3)) . '.' . $photo->getClientOriginalExtension();
+        $fileName = time() . bin2hex(random_bytes(3)) . '.jpg';
         $filePath = 'images/users/' . $fileName;
-        $photo->move(public_path('images/users'), $fileName);
-        $baseUrl = env('APP_URL');
-        return $baseUrl . '/' . $filePath;
+
+        $tmpPath = $photo->path();
+
+        $manager = new ImageManager(new Driver());
+        $image = $manager->read($tmpPath)
+            ->cover(70, 70)
+            ->toJpeg(90);
+
+        Storage::disk('public')->put($filePath, $image);
+
+        unlink($tmpPath);
+
+        return 'images/users/' . $fileName;
     }
 }

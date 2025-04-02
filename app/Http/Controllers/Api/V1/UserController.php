@@ -3,17 +3,22 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserCollection;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(): UserCollection
     {
-        return response()->json([
+        $count = request()->input('count', 15);
+        $users = User::query()
+            ->paginate($count)
+            ->withQueryString();
+
+        return new UserCollection($users)->additional([
             'success' => true,
-            'users' => UserResource::collection(User::all()),
         ]);
     }
 

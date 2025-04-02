@@ -54,4 +54,15 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Position::class);
     }
+
+    public function updatePhoto($path)
+    {
+        $this->photo = $path;
+        $this->save();
+    }
+
+    public function getPhotoUrlAttribute()
+    {
+        return url($this->photo);
+    }
 }
