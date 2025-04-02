@@ -22,7 +22,7 @@ class UserResource extends JsonResource
             'position' => $this->position->name,
             'position_id' => $this->position_id,
             'registration_timestamp' => $this->email_verified_at?->timestamp,
-            'photo' => $this->photo_url,
+            'photo' => $this->photo ? $this->photo_url : url('/images/no_image.jpg'),
         ];
     }
 }

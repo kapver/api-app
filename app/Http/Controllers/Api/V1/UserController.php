@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exceptions\ExistingUserException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RegisterUserRequest;
 use App\Http\Resources\UserCollection;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
@@ -20,6 +23,28 @@ class UserController extends Controller
         return new UserCollection($users)->additional([
             'success' => true,
         ]);
+    }
+
+    public function store(
+        RegisterUserRequest $request,
+        AuthService $authService,
+    ): JsonResponse
+    {
+        try {
+            $data = $request->validated();
+            $user = $authService->register($data);
+
+            return response()->json([
+                'success' => true,
+                'user_id' => $user->id,
+                'message' => 'New user successfully registered',
+            ], 201);
+        } catch (ExistingUserException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode());
+        }
     }
 
     public function show($id): JsonResponse

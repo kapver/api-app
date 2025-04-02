@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Exceptions\ExistingUserException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegisterUserRequest;
 use App\Services\AuthService;
-use App\Services\PhotoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,27 +21,5 @@ class AuthController extends Controller
                 $client_agent,
             ),
         ]);
-    }
-
-    public function register(
-        RegisterUserRequest $request,
-        AuthService $authService,
-    ): JsonResponse
-    {
-        try {
-            $data = $request->validated();
-            $user = $authService->register($data);
-
-            return response()->json([
-                'success' => true,
-                'user_id' => $user->id,
-                'message' => 'New user successfully registered',
-            ], 201);
-        } catch (ExistingUserException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], $e->getCode());
-        }
     }
 }

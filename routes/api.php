@@ -13,10 +13,11 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('v1')->group(function () {
     Route::get('token', [AuthController::class, 'token']);
-    Route::post('users', [AuthController::class, 'register']);
 
-    Route::get('users', [UserController::class, 'index']);
-    Route::get('users/{id}', [UserController::class, 'show']);
+    // Route::post('users', [UserController::class, 'store']);
+    // Route::get('users', [UserController::class, 'index']);
+    // Route::get('users/{id}', [UserController::class, 'show']);
+    Route::resource('users', UserController::class);
 
     Route::get('positions', [PositionController::class, 'index']);
 });

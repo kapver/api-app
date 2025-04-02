@@ -12,7 +12,7 @@ class RegisterUserRequest extends FormRequest
     public function authorize(AuthService $service): bool
     {
         return $service->checkRegistrationToken(
-            $this->header('Token'),
+            $this->header('Token', ''),
             $this->getClientIp(),
             $this->userAgent(),
         );
