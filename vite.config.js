@@ -12,6 +12,9 @@ export default defineConfig({
     tailwindcss(),
     vue(),
   ],
+  build: {
+    base: process.env.VITE_API_URL || 'https://laravel-api-alpine.onrender.com',
+  },
   resolve: {
     alias: {
       vue: "vue/dist/vue.esm-bundler.js",

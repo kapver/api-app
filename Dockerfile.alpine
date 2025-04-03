@@ -1,0 +1,16 @@
+FROM php:8.4-alpine
+RUN apk add --no-cache redis sqlite-libs curl autoconf libtool gcc musl-dev make unzip libpng-dev jpeg-dev libjpeg-turbo-dev nodejs npm \
+    && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis && docker-php-ext-enable redis \
+    && docker-php-ext-configure gd --with-jpeg && docker-php-ext-install gd \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && apk del .build-deps
+WORKDIR /app
+COPY . /app
+COPY .env.example /app/.env
+RUN composer install --optimize-autoloader
+RUN npm install && npm run build
+RUN php artisan migrate:fresh --seed
+RUN php artisan storage:link
+CMD redis-server --daemonize yes && php artisan serve --host=0.0.0.0 --port=8000
+EXPOSE 8000
