@@ -9,6 +9,7 @@ use App\Http\Resources\UserCollection;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuthService;
+use App\Services\PhotoService;
 use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
@@ -28,11 +29,17 @@ class UserController extends Controller
     public function store(
         RegisterUserRequest $request,
         AuthService $authService,
+        PhotoService $photoService
     ): JsonResponse
     {
         try {
             $data = $request->validated();
             $user = $authService->register($data);
+
+            if ($data['photo']) {
+                $user->photo = $photoService->upload($data['photo']);
+                $user->save();
+            }
 
             return response()->json([
                 'success' => true,

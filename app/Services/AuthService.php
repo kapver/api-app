@@ -4,61 +4,23 @@ namespace App\Services;
 
 use App\Exceptions\ExistingUserException;
 use App\Models\User;
-use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
 {
-    private static ?string $token_key = null;
-
-    public function __construct(private PhotoService $photoService)
-    {
+    public function __construct(
+        private TokenService $tokenService,
+    ) {
     }
 
-    public function getRegistrationToken(string $client_ip, string $client_agent): string
+    public function getRegistrationToken(array $context): string
     {
-        $client_hash = hash('sha256', $client_ip.$client_agent);
-        $token_key = 'token_' . $client_hash;
-
-        if (!Cache::has($token_key)) {
-            $token = Crypt::encrypt([
-                'client_ip' => $client_ip,
-                'client_agent' => $client_agent,
-            ]);
-            $lifetime = (int) config('app.registration_token_lifetime', 40);
-            Cache::put($token_key, $token, now()->addMinutes($lifetime));
-        } else {
-            $token = Cache::get($token_key);
-        }
-
-        return $token;
+        return $this->tokenService->generate($context);
     }
 
-    public function checkRegistrationToken(string $client_token, string $client_ip, string $client_agent): bool
+    public function checkRegistrationToken(string $client_token, array $context): bool
     {
-        $client_hash = hash('sha256', $client_ip.$client_agent);
-        self::$token_key = 'token_' . $client_hash;
-        $stored_token = Cache::get(self::$token_key);
-
-        if ($client_token && $stored_token === $client_token) {
-            try {
-                $decrypted = Crypt::decrypt($client_token);
-                return $decrypted['client_ip'] === $client_ip && $decrypted['client_agent'] === $client_agent;
-            } catch (DecryptException) {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    public static function removeRegistrationToken(): void
-    {
-        if (self::$token_key) {
-            Cache::delete(self::$token_key);
-        }
+        return $this->tokenService->validate($client_token, $context);
     }
 
     public function register(array $data): User
@@ -76,12 +38,7 @@ class AuthService
         $user->password = Hash::make('password');
         $user->save();
 
-        self::removeRegistrationToken();
-
-        if ($data['photo']) {
-            $user->photo = $this->photoService->upload($data['photo']);
-            $user->save();
-        }
+        $this->tokenService->invalidate();
 
         return $user;
     }

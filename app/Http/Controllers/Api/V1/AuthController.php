@@ -11,15 +11,15 @@ class AuthController extends Controller
 {
     public function token(Request $request, AuthService $authService): JsonResponse
     {
-        $client_ip = $request->server('REMOTE_ADDR');
-        $client_agent = $request->server('HTTP_USER_AGENT');
+        // $client_ip = $request->server('REMOTE_ADDR');
+        // $client_agent = $request->server('HTTP_USER_AGENT');
 
         return response()->json([
             'success' => true,
-            'token' => $authService->getRegistrationToken(
-                $client_ip,
-                $client_agent,
-            ),
+            'token' => $authService->getRegistrationToken([
+                // 'client_ip' => $client_ip,
+                // 'client_agent' => $client_agent,
+            ]),
         ]);
     }
 }
